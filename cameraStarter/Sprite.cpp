@@ -62,6 +62,7 @@ Sprite& Sprite::operator=(const Sprite& rhs) {
 	scale = rhs.scale;
 	origin = rhs.origin;
 	mpTex = rhs.mpTex;
+	mpTexData = rhs.mpTexData;
 	mAnim = rhs.mAnim;
 	return *this;
 }
