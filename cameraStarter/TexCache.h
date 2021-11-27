@@ -9,7 +9,7 @@
 //handy rectangle definer
 struct RECTF
 {
-	float left, top, right, bottom;
+	float left, top, right, bottom;  //coordinates for part of a sprite (or anything else rectangular)
 	operator RECT() {
 		return RECT{ (int)left,(int)top,(int)right,(int)bottom };
 	}
@@ -23,6 +23,7 @@ public:
 	//associate a file name with a texture resource
 	struct Data
 	{
+		//constructors
 		Data() {}
 		Data(const std::string& fName, ID3D11ShaderResourceView*p, const DirectX::SimpleMath::Vector2& _dim)
 			: fileName(fName), pTex(p), dim(_dim)
@@ -36,10 +37,11 @@ public:
 			if (_frames)
 				frames = *_frames;
 		}
-		std::string fileName;
-		ID3D11ShaderResourceView* pTex = nullptr;
-		DirectX::SimpleMath::Vector2 dim;
-		std::vector<RECTF> frames;
+
+		std::string fileName;						//texture file name
+		ID3D11ShaderResourceView* pTex = nullptr;	//pointer to d3d texture object
+		DirectX::SimpleMath::Vector2 dim;			//width and height in texels
+		std::vector<RECTF> frames;					//optional array of sub-ractangles within the texture in texels
 	};
 
 	//tidy up at the end
@@ -51,6 +53,7 @@ public:
 		mAssetPath = path;
 	}
 	//pull out a texture by nickname = fast
+	//for top speed the texture key would be a unique integer ID, but names are easier
 	Data& Get(const std::string& texName) {
 		return mCache.at(texName);
 	}
@@ -58,12 +61,19 @@ public:
 	const Data& Get(ID3D11ShaderResourceView *pTex);
 
 private:
+	/*
+	* find the texture this d3d handle points at, return its size
+	* pTex - IN texture we are interested in
+	* returns - width and height of texture in texels
+	*/
 	DirectX::SimpleMath::Vector2 GetDimensions(ID3D11ShaderResourceView* pTex);
 	//array of texture data
 	typedef std::unordered_map<std::string, Data> MyMap;
 	MyMap mCache;
 
-	//some data sub folder with all the textures in
+	//some data sub folder with all the textures in e.g. /data/textures
+	//useful if you just want to specify textures by file name in the code
+	//and not write the path everywhere
 	std::string mAssetPath;
 };
 

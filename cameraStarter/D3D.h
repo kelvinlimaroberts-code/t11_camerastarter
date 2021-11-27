@@ -5,12 +5,19 @@
 #include "SimpleMath.h"
 #include "TexCache.h"
 
-
+/*
+* wrap common D3D behaviour behind a simpler interface
+*/
 class MyD3D
 {
 public:
 
-	//main start up function
+	/*
+	main start up function
+	pOnResize - function pointer to something we can call when we detect
+				the screen has changed resolution
+	return - true if there were no problems
+	*/
 	bool InitDirect3D(void(*pOnResize)(int, int, MyD3D&));
 	//default minimum behaviour when ALT+ENTER or drag or resize
 	//parameters are new width and height of window
@@ -21,8 +28,18 @@ public:
 	void ReleaseD3D(bool extraReporting = true);
 	//is the screen/window square or letterbox or?
 	float GetAspectRatio();
+	
+	/*
+	* wipe the back buffer prior to a new render cycle starting
+	* colour - colour to wip the buffer
+	*/
 	void BeginRender(const DirectX::SimpleMath::Vector4& colour);
+	//tell the gpu to swap front and back buffers when ready
 	void EndRender();
+
+	/*
+	* Accessors
+	*/
 	ID3D11Device& GetDevice() { 
 		assert(mpd3dDevice);
 		return *mpd3dDevice;
@@ -34,21 +51,32 @@ public:
 	bool GetDeviceReady() const {
 		return mpd3dDevice!=nullptr;
 	}
-	//see mpOnResize
+	TexCache& GetCache() { return mTexCache; }
+	ID3D11SamplerState& GetWrapSampler() {
+		assert(mpWrapSampler);
+		return *mpWrapSampler;
+	}
+
+	//see mpOnResize - just checks it's not null before calling it
 	void OnResize(int sw, int sh, MyD3D& d3d) {
 		assert(mpOnResize);
 		mpOnResize(sw, sh, d3d);
 	}
-	TexCache& GetCache() { return mTexCache; }
-	ID3D11SamplerState& GetWrapSampler()  {
-		assert(mpWrapSampler);
-		return *mpWrapSampler;
-	}
+
+	/*
+	* Prepare the input assembler on the graphics pipeline for new data
+	* pInputLayout - vertex description D3D object
+	* pVBuffer - vertex buffer
+	* szVertex - size of a vertex
+	* pIBuffer - index buffer
+	* topology - what do these buffers refer to? Lines, points, triangle lists?
+	*/
 	void InitInputAssembler(ID3D11InputLayout* pInputLayout, ID3D11Buffer* pVBuffer, UINT szVertex, ID3D11Buffer* pIBuffer, 
 								D3D_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
 private:
+	//library of unique textures, only load one of each once, never duplicate
 	TexCache mTexCache;
 	//what type of gpu have we got - hopefully a hardware one
 	D3D_DRIVER_TYPE md3dDriverType = D3D_DRIVER_TYPE_UNKNOWN;
@@ -75,7 +103,7 @@ private:
 	//a function to call when we ALT+ENTER or drag the window
 	//two parameters are width/height of the new window and this
 	void(*mpOnResize)(int, int, MyD3D&) = nullptr;
-
+	//D3D object to configure wrapping when sampling a texture
 	ID3D11SamplerState* mpWrapSampler = nullptr;
 
 	//heavy lifting to start D3D11
@@ -96,7 +124,7 @@ private:
 	void CreateSwapChainDescription(DXGI_SWAP_CHAIN_DESC& sd, HWND hMainWnd, bool windowed, int screenWidth, int screenHeight);
 	//once you have a description you can create the swapchain needed
 	void CreateSwapChain(DXGI_SWAP_CHAIN_DESC& sd);
-
+	//make a D3D texture wrapping sampler object
 	void CreateWrapSampler(ID3D11SamplerState* &pSampler);
 
 };

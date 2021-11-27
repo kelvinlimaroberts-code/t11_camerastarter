@@ -33,8 +33,6 @@ float WinUtil::GetAspectRatio()
 	return (float)w / h;
 }
 
-
-
 LRESULT WinUtil::RealDefaultMssgHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)

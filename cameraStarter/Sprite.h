@@ -7,7 +7,7 @@ class Sprite;
 
 /*
 Animate by flicking through a series of sub-rectangle in an texture atlas
-*/
+*/ 
 class Animate {
 private:
 	int mStart = 0, mStop = 0, mCurrent = 0; //start, stop and current frame of animation
@@ -39,30 +39,32 @@ public:
 
 /*
 Wrap up sprite rendering and movement
+This is my quick one, you should make your own
 */
 class Sprite
 {
 private:
-	ID3D11ShaderResourceView *mpTex;
-	MyD3D& mD3D;
-	RECTF mTexRect;
-	DirectX::SimpleMath::Vector2 scale;
-	const TexCache::Data *mpTexData;
-	Animate mAnim;
+	ID3D11ShaderResourceView *mpTex;		//texture we are currently using
+	MyD3D& mD3D;							//need a reference to d3d nearly everywhere
+	RECTF mTexRect;							//the rectangular part of the texture this sprite is using
+	DirectX::SimpleMath::Vector2 scale;		//size of the sprite
+	const TexCache::Data *mpTexData;		//info on the texture in the texture library - texture size, atlas frames
+	Animate mAnim;							//support object that can animate a sprite's texture
 
 public:
-	DirectX::SimpleMath::Vector2 mPos;
-	DirectX::SimpleMath::Vector2 mVel;
-	float depth;
-	DirectX::SimpleMath::Vector4 colour;
-	float rotation;
-	DirectX::SimpleMath::Vector2 origin;
+	DirectX::SimpleMath::Vector2 mPos;		//position
+	DirectX::SimpleMath::Vector2 mVel;		//velocity
+	float depth;							//depth
+	DirectX::SimpleMath::Vector4 colour;	//colour
+	float rotation;							//is it rotated
+	DirectX::SimpleMath::Vector2 origin;	//sprite origin, centre, top left?
 
+	//constructors
 	Sprite(MyD3D& d3d)
 		:mPos(0, 0), mVel(0, 0),
 		depth(0), mTexRect{ 0,0,0,0 }, colour(1, 1, 1, 1),
 		rotation(0), scale(1, 1), origin(0, 0), mpTex(nullptr),
-		mD3D(d3d), mAnim(*this)
+		mD3D(d3d), mAnim(*this), mpTexData(nullptr)
 	{}
 	Sprite(const Sprite& rhs)
 		:mD3D(rhs.mD3D), mAnim(*this)
@@ -77,25 +79,28 @@ public:
 	void SetTex(ID3D11ShaderResourceView& tex, const RECTF& texRect = RECTF{ 0,0,0,0 });
 	//change which part later
 	void SetTexRect(const RECTF& texRect);
+	//scroll the texture around
 	void Scroll(float x, float y);
-
+	//make the sprite show a particular frame of animation (useful if it isn't actually
+	//animation frames at all, could be a sprite atlas)
 	void SetFrame(int id);
-	Animate& GetAnim() {
-		return mAnim;
+	//change size
+	void SetScale(const DirectX::SimpleMath::Vector2& s) {
+		scale = s;
 	}
 
-
-	//getters
+	 
+	//getters 
 	const TexCache::Data& GetTexData() const {
 		assert(mpTexData);
 		return *mpTexData;
 	}
+	Animate& GetAnim() {
+		return mAnim;
+	}
 	ID3D11ShaderResourceView& GetTex() {
 		assert(mpTex);
 		return *mpTex;
-	}
-	void SetScale(const DirectX::SimpleMath::Vector2& s) {
-		scale = s;
 	}
 	const DirectX::SimpleMath::Vector2& GetScale() const {
 		return scale;

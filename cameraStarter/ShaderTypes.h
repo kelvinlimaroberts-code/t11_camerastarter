@@ -10,13 +10,14 @@ This is what our vertex data will look like
 */
 struct VertexPosColour
 {
-	DirectX::SimpleMath::Vector3 Pos;
-	DirectX::SimpleMath::Vector3 Colour;
+	DirectX::SimpleMath::Vector3 Pos;				//local space position of the vertex
+	DirectX::SimpleMath::Vector3 Colour;			//colour red, green, blue, alpha
 
+	//a description of this structure that we can pass to d3d
 	static const D3D11_INPUT_ELEMENT_DESC sVertexDesc[2];
 };
 
-
+//alternate with no colour component
 struct VertexPos
 {
 	DirectX::SimpleMath::Vector3 Pos;

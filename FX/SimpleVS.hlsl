@@ -1,11 +1,12 @@
 #include "helper.hlsl"
 
+//structure matching the one on the CPU, this is a contstant register
 cbuffer PerObject : register(b0)
 {
-	float4x4 projectionMatrix;
+	float4x4 projectionMatrix; //master work->view->projection matrix from the cpu
 }
 
-
+//vertex shader, input is from the geometry buffer
 VSOut main( AppData IN )
 {
     VSOut OUT;

@@ -15,22 +15,25 @@ using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
 
-ID3D11InputLayout* gInputLayout;
-ID3D11Buffer* gBoxVB;
-ID3D11Buffer* gBoxIB;
-ID3D11VertexShader* pVertexShader = nullptr;
-ID3D11PixelShader* pPixelShader = nullptr;
+ID3D11InputLayout* gInputLayout;				//vertex description
+ID3D11Buffer* gBoxVB;							//quad vertex buffer
+ID3D11Buffer* gBoxIB;							//quad index buffer
+ID3D11VertexShader* pVertexShader = nullptr;	//d3d vertex shader
+ID3D11PixelShader* pPixelShader = nullptr;		//d3d pixel shader
 
+//the three matrices all 3D apps need
 Matrix gWorld;
 Matrix gView;
 Matrix gProj;
 
-GfxParamsPerObj gGfxData;
-ID3D11Buffer* gpGfxDataConstsBuffer;
 
-Vector3 gCamPos = { 0, 0, -10 };
-float gFOV = 0.25f*PI;
+GfxParamsPerObj gGfxData;				//a structure containing data the gpu needs to render something
+ID3D11Buffer* gpGfxDataConstsBuffer;	//a d3d object to copy the above data into, ends up in a constant register
 
+Vector3 gCamPos = { 0, 0, -10 };		//where is the camera in the world?
+float gFOV = 0.25f*PI;					//what field of view angle do we want
+
+//build a quad
 void BuildGeometryBuffers()
 {
 	MyD3D& d3d = WinUtil::Get().GetD3D();
@@ -58,12 +61,14 @@ void BuildGeometryBuffers()
 	CreateIndexBuffer(d3d.GetDevice(), sizeof(UINT) * 6, indices, gBoxIB);
 }
 
+//copy the data the gpu needs across to render something
 void UpdateConstsPerObj()
 {
 	gGfxData.wvp = gWorld * gView * gProj;
 	WinUtil::Get().GetD3D().GetDeviceCtx().UpdateSubresource(gpGfxDataConstsBuffer, 0, nullptr, &gGfxData, 0, 0);
 }
 
+//initialise the shaders and prepare all d3d objects
 bool BuildFX()
 {
 	MyD3D& d3d = WinUtil::Get().GetD3D();
@@ -91,6 +96,7 @@ bool BuildFX()
 
 }
 
+//handy function to get a random number between min+max
 float GetRandom(float min, float max)
 {
 	float alpha = (float)rand() / RAND_MAX;
@@ -99,7 +105,7 @@ float GetRandom(float min, float max)
 	return alpha;
 }
 
-
+//called once to setup all d3d objects and initialse the matrices
 void InitGame()
 {
 	BuildGeometryBuffers();
@@ -109,7 +115,7 @@ void InitGame()
 	gView = Matrix::Identity;
 	gProj = Matrix::Identity;
 
-	srand(0);
+	srand(0);	//seed the random number generator
 }
 
 void ReleaseGame()
@@ -122,7 +128,7 @@ void ReleaseGame()
 	ReleaseCOM(gInputLayout);
 }
 
-
+//for now just update the matrices
 void Update(float dTime)
 {
 	CreateProjectionMatrix(gProj, gFOV, WinUtil::Get().GetAspectRatio(), 1, 1000.f);
@@ -131,29 +137,32 @@ void Update(float dTime)
 
 void Render(float dTime)
 {
+	//wipe the back buffer ready for rendering
 	MyD3D& d3d = WinUtil::Get().GetD3D();
 	d3d.BeginRender(Colours::Blue);
 
+	//setup for rendering and send the quad
 	d3d.InitInputAssembler(gInputLayout, gBoxVB, sizeof(VertexPosColour), gBoxIB);
 	d3d.GetDeviceCtx().VSSetShader(pVertexShader, nullptr, 0);
 	d3d.GetDeviceCtx().PSSetShader(pPixelShader, nullptr, 0);
-
 	Matrix trans = Matrix::CreateTranslation(0, 0, 0);
 	gWorld = trans;
 	UpdateConstsPerObj();
 	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
 	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
 
+	//tell the gpu we've finished
 	d3d.EndRender();
 }
 
+//if the resolution changes rebuild the projection matrix
 void OnResize(int screenWidth, int screenHeight, MyD3D& d3d)
 {
 	CreateProjectionMatrix(gProj, gFOV, WinUtil::Get().GetAspectRatio(), 1, 1000.f);
 	d3d.OnResize_Default(screenWidth, screenHeight);
 }
 
-
+//check for eascape to quit
 LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//do something game specific here
@@ -177,18 +186,17 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 				   PSTR cmdLine, int showCmd)
 {
-
+	//setup both windows and d3d
 	int w(512), h(256);
 	//int defaults[] = { 640,480, 800,600, 1024,768, 1280,1024 };
 		//WinUtil::ChooseRes(w, h, defaults, 4);
 	if (!WinUtil::Get().InitMainWindow(w, h, hInstance, "Fezzy", MainWndProc, true))
 		assert(false);
-
 	MyD3D d3d;
 	if (!d3d.InitDirect3D(OnResize))
 		assert(false);
 	WinUtil::Get().SetD3D(d3d);
-	d3d.GetCache().SetAssetPath("data/");
+	d3d.GetCache().SetAssetPath("data/");	//tell the cache where to look for textures
 
 	InitGame();
 
