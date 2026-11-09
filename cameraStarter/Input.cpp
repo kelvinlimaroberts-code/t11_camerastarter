@@ -3,7 +3,6 @@
 #include <cassert>
 #include <sstream>
 
-
 #include "Input.h"
 #include "D3D.h"
 #include "D3DUtil.h"
