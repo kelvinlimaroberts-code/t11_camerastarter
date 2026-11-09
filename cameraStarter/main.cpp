@@ -32,6 +32,15 @@ ID3D11Buffer* gpGfxDataConstsBuffer;	//a d3d object to copy the above data into,
 
 Vector3 gCamPos = { 0, 0, -10 };		//where is the camera in the world?
 float gFOV = 0.25f*PI;					//what field of view angle do we want
+//
+//my global variabke to mess around
+float radiusOfPath = 4.f;
+float XposOfCube = 0.f;
+float YposOfCube = 0.f;
+float angleOfCube = 0.f;
+float speedOfCube = 1.f;
+
+
 
 //build a quad
 void BuildGeometryBuffers()
@@ -145,7 +154,12 @@ void Render(float dTime)
 	d3d.InitInputAssembler(gInputLayout, gBoxVB, sizeof(VertexPosColour), gBoxIB);
 	d3d.GetDeviceCtx().VSSetShader(pVertexShader, nullptr, 0);
 	d3d.GetDeviceCtx().PSSetShader(pPixelShader, nullptr, 0);
-	Matrix trans = Matrix::CreateTranslation(0, 0, 0);
+	
+	angleOfCube += speedOfCube * dTime;
+	XposOfCube = radiusOfPath * cos(angleOfCube);
+	YposOfCube = radiusOfPath * sin(angleOfCube);
+
+	Matrix trans = Matrix::CreateTranslation(XposOfCube, YposOfCube, 0);             //trying to move the quad??
 	gWorld = trans;
 	UpdateConstsPerObj();
 	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
