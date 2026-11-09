@@ -40,7 +40,7 @@ float YposOfCube = 0.f;
 float angleOfCube = 0.f;
 float speedOfCube = 1.f;
 
-
+float cameraSpeed = 5.f;
 
 //build a quad
 void BuildGeometryBuffers()
@@ -189,7 +189,25 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case 27:
 			PostQuitMessage(0);
 			return 0;
-		}
+			break;
+		case 81: //q
+			gCamPos.y += cameraSpeed;
+			break;
+		case 65: //A
+			gCamPos.y -= cameraSpeed;
+			break;
+		case 44: //d
+			gCamPos.x -= cameraSpeed;
+			break;
+		case 46: //f
+			gCamPos.x += cameraSpeed;
+			break;
+		case 87: //w
+			gCamPos.z += cameraSpeed;
+			break;
+		case 83: //s
+			gCamPos.z -= cameraSpeed;
+		}  
 	}
 
 	//default message handling (resize window, full screen, etc)
