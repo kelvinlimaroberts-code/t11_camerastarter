@@ -63,7 +63,7 @@ Quad_t::~Quad_t()
 
 
 Quad_t quadA(0, 0, 0, 1, 1);
-Quad_t quadB(0, 0, 180, 1, 1);
+Quad_t quadB(0, 0, 180, -1, 1);
 Quad_t quadC(0, 0, 0, 1, 1);
 
 
@@ -184,16 +184,45 @@ void Render(float dTime)
 	d3d.GetDeviceCtx().VSSetShader(pVertexShader, nullptr, 0);
 	d3d.GetDeviceCtx().PSSetShader(pPixelShader, nullptr, 0);
 	
-	
+
+	//trying to move the quadA
 	quadA.angle += quadA.speed * dTime;
 	quadA.Xpos = radiusOfPath * cos(quadA.angle);
 	quadA.Ypos = radiusOfPath * sin(quadA.angle);
-
-	Matrix trans = Matrix::CreateTranslation(quadA.Xpos, quadA.Ypos, 0);             //trying to move the quad??
+	Matrix trans = Matrix::CreateTranslation(quadA.Xpos, quadA.Ypos, 0);            
 	gWorld = trans;
 	UpdateConstsPerObj();
 	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
 	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
+
+
+	//trying to move the quadB
+	quadB.angle += quadB.speed * dTime;
+	quadB.Xpos = radiusOfPath * cos(quadB.angle);
+	quadB.Ypos = radiusOfPath * sin(quadB.angle);
+	trans = Matrix::CreateTranslation(quadB.Xpos, quadB.Ypos, 0);
+	gWorld = trans;
+	UpdateConstsPerObj();
+	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
+	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
+
+	//trying to move quadC
+	if (quadC.size < 4 )
+	{
+		quadC.size += quadC.size * dTime;
+	}
+	else
+	{
+		//quadC.size =
+	}
+	
+	trans = Matrix::CreateTranslation(quadC.Xpos, quadC.Ypos, 0);
+	Matrix scale = Matrix::CreateScale((quadC.size));
+	gWorld = scale * trans;
+	UpdateConstsPerObj();
+	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
+	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
+
 
 	//tell the gpu we've finished
 	d3d.EndRender();
