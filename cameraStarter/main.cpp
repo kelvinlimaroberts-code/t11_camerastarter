@@ -35,10 +35,39 @@ float gFOV = 0.25f*PI;					//what field of view angle do we want
 //
 //my global variabke to mess around
 float radiusOfPath = 4.f;
-float XposOfCube = 0.f;
-float YposOfCube = 0.f;
-float angleOfCube = 0.f;
-float speedOfCube = 1.f;
+
+struct Quad_t
+{
+	Quad_t(float x, float y, float angl, float speeed, float siize);
+	~Quad_t();
+
+	float Xpos = 0.f;
+	float Ypos = 0.f;
+	float angle = 0.f;
+	const float speed = 1.f;
+	float size = 1.f;
+};
+
+Quad_t::Quad_t(float x, float y, float angl, float speeed, float siize) : speed(speeed)
+{
+	Xpos = x;
+	Ypos = y;
+	angle = angl;
+	size = siize;
+}
+
+
+Quad_t::~Quad_t()
+{
+}
+
+
+Quad_t quadA(0, 0, 0, 1, 1);
+Quad_t quadB(0, 0, 180, 1, 1);
+Quad_t quadC(0, 0, 0, 1, 1);
+
+
+
 
 float cameraSpeed = 5.f;
 
@@ -155,11 +184,12 @@ void Render(float dTime)
 	d3d.GetDeviceCtx().VSSetShader(pVertexShader, nullptr, 0);
 	d3d.GetDeviceCtx().PSSetShader(pPixelShader, nullptr, 0);
 	
-	angleOfCube += speedOfCube * dTime;
-	XposOfCube = radiusOfPath * cos(angleOfCube);
-	YposOfCube = radiusOfPath * sin(angleOfCube);
+	
+	quadA.angle += quadA.speed * dTime;
+	quadA.Xpos = radiusOfPath * cos(quadA.angle);
+	quadA.Ypos = radiusOfPath * sin(quadA.angle);
 
-	Matrix trans = Matrix::CreateTranslation(XposOfCube, YposOfCube, 0);             //trying to move the quad??
+	Matrix trans = Matrix::CreateTranslation(quadA.Xpos, quadA.Ypos, 0);             //trying to move the quad??
 	gWorld = trans;
 	UpdateConstsPerObj();
 	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
