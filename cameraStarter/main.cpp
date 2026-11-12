@@ -34,12 +34,19 @@ Vector3 gCamPos = { 0, 0, -10 };		//where is the camera in the world?
 float gFOV = 0.25f*PI;					//what field of view angle do we want
 //
 //my global variabke to mess around
+float cameraSpeed = 5.f;
+
 float radiusOfPath = 4.f;
+constexpr static int amountQuads = 10;
+
 
 struct Quad_t
 {
+	Quad_t() = default;
 	Quad_t(float x, float y, float angl, float speeed, float siize);
-	~Quad_t();
+	~Quad_t() = default;
+	void Update(float dTime);
+	void Render(MyD3D& d3d);
 
 	float Xpos = 0.f;
 	float Ypos = 0.f;
@@ -47,7 +54,6 @@ struct Quad_t
 	const float speed = 1.f;
 	float size = 1.f;
 };
-
 Quad_t::Quad_t(float x, float y, float angl, float speeed, float siize) : speed(speeed)
 {
 	Xpos = x;
@@ -55,21 +61,18 @@ Quad_t::Quad_t(float x, float y, float angl, float speeed, float siize) : speed(
 	angle = angl;
 	size = siize;
 }
-
-
-Quad_t::~Quad_t()
+void Quad_t::Update(float dTime)
 {
+	angle += speed * dTime;
+	Xpos = radiusOfPath * cos(angle);
+	Ypos = radiusOfPath * sin(angle);
 }
 
-
-Quad_t quadA(0, 0, 0, 1, 1);
-Quad_t quadB(0, 0, 180, -1, 1);
-Quad_t quadC(0, 0, 0, 1, 1);
+Quad_t quadArray[amountQuads];
 
 
 
 
-float cameraSpeed = 5.f;
 
 //build a quad
 void BuildGeometryBuffers()
@@ -143,6 +146,7 @@ float GetRandom(float min, float max)
 	return alpha;
 }
 
+
 //called once to setup all d3d objects and initialse the matrices
 void InitGame()
 {
@@ -154,6 +158,11 @@ void InitGame()
 	gProj = Matrix::Identity;
 
 	srand(0);	//seed the random number generator
+
+	for (size_t i = 0; i < amountQuads; i++)  //set the angles to  be apart from each other
+	{
+		quadArray[i].angle = i * 36;
+	}
 }
 
 void ReleaseGame()
@@ -166,11 +175,14 @@ void ReleaseGame()
 	ReleaseCOM(gInputLayout);
 }
 
+
+
 //for now just update the matrices
 void Update(float dTime)
 {
 	CreateProjectionMatrix(gProj, gFOV, WinUtil::Get().GetAspectRatio(), 1, 1000.f);
 	CreateViewMatrix(gView, gCamPos, Vector3(0, 0, 0), Vector3(0, 1, 0));
+
 }
 
 void Render(float dTime)
@@ -185,43 +197,18 @@ void Render(float dTime)
 	d3d.GetDeviceCtx().PSSetShader(pPixelShader, nullptr, 0);
 	
 
-	//trying to move the quadA
-	quadA.angle += quadA.speed * dTime;
-	quadA.Xpos = radiusOfPath * cos(quadA.angle);
-	quadA.Ypos = radiusOfPath * sin(quadA.angle);
-	Matrix trans = Matrix::CreateTranslation(quadA.Xpos, quadA.Ypos, 0);            
-	gWorld = trans;
-	UpdateConstsPerObj();
-	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
-	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
-
-
-	//trying to move the quadB
-	quadB.angle += quadB.speed * dTime;
-	quadB.Xpos = radiusOfPath * cos(quadB.angle);
-	quadB.Ypos = radiusOfPath * sin(quadB.angle);
-	trans = Matrix::CreateTranslation(quadB.Xpos, quadB.Ypos, 0);
-	gWorld = trans;
-	UpdateConstsPerObj();
-	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
-	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
-
-	//trying to move quadC
-	if (quadC.size < 4 )
+	Matrix trans;
+	for (size_t i = 0; i < amountQuads; i++)
 	{
-		quadC.size += quadC.size * dTime;
+		quadArray[i].Update(dTime);
+
+		//render
+		trans = Matrix::CreateTranslation(quadArray[i].Xpos, quadArray[i].Ypos, 0);
+		gWorld = trans;
+		UpdateConstsPerObj();
+		d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
+		d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
 	}
-	else
-	{
-		//quadC.size =
-	}
-	
-	trans = Matrix::CreateTranslation(quadC.Xpos, quadC.Ypos, 0);
-	Matrix scale = Matrix::CreateScale((quadC.size));
-	gWorld = scale * trans;
-	UpdateConstsPerObj();
-	d3d.GetDeviceCtx().VSSetConstantBuffers(0, 1, &gpGfxDataConstsBuffer);
-	d3d.GetDeviceCtx().DrawIndexed(6, 0, 0);
 
 
 	//tell the gpu we've finished
